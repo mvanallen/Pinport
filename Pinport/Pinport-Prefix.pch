@@ -4,6 +4,7 @@
 
 #ifdef __OBJC__
 	#import <Cocoa/Cocoa.h>
+	#import <SystemConfiguration/SystemConfiguration.h>
 #endif
 
 #ifdef DEBUG
