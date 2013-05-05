@@ -7,20 +7,24 @@ Overview
 Pinport migrates [Google Reader](https://www.google.com/reader) items (exported via [Google Takeout](https://www.google.com/takeout/)) to [Pinboard](https://pinboard.in/).
 
 Main features:
-    - import of Google Reader .json exports
-    - configurable inclusion or removal of existing Reader item tags
-    - additional custom tags
-    - can automatically resolve FeedBurner redirects
-    - immediate upload to your Pinboard account
+
+* import of Google Reader .json exports
+* configurable inclusion or removal of existing Reader item tags
+* additional custom tags
+* can automatically resolve FeedBurner redirects
+* immediate upload to your Pinboard account
 
 Requirements:
-    - MacOS X 10.7+ (due to ARC & Storyboards)
+
+* MacOS X 10.7+ (due to ARC & Storyboards)
 
 Uses:
-    - ARC
-    - Storyboards
+
+* ARC
+* Storyboards
 
 Status: *Alpha*
+
 
 FAQ
 ---
@@ -35,6 +39,7 @@ As you may know, Google has decided to [discontinue Reader](http://googleblog.bl
 
 I am a bit of a neat freak, so I'd rather do data migration myself instead of uploading first and sift through the data later. So I did.
 
+
 ### Why should I use this when Pinboard already has a convenient 'Import' functionality?
 
 Two reasons:
@@ -45,9 +50,11 @@ Second, Pinport allows more control over how your imported items are added & tag
 
 Bonus reason: it was a fun weekend project.
 
+
 ### The UI is lacking 'teh cool'!
 
 I know.
+
 
 ### ‚Pinport‘? Really?
 
