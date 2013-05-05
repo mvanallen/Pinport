@@ -61,6 +61,14 @@ I know.
 Yah, really. ‚Pinboard Import‘,.. get it? I am aware that it’s a *really* bad pun.
 
 
+Credits
+-------
+
+* Icon created by [The Girl Tyler](http://www.thegirltyler.com) (Licence: [Free for non-commercial use.](http://www.iconarchive.com/show/brand-camp-icons-by-thegirltyler.html))
+
+* [AFNetworking](https://github.com/AFNetworking/AFNetworking/) created by [Mattt Thompson](http://github.com/mattt) & [Scott Raymond](http://github.com/sco) (Licence: [MIT](https://github.com/AFNetworking/AFNetworking/blob/master/LICENSE))
+
+
 Licence
 -------
 
