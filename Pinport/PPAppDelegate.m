@@ -5,6 +5,8 @@
 //  Created by Michael on 03.05.13.
 //  Copyright (c) 2013 mvanallen. All rights reserved.
 //
+//	Licenced under the MIT licence: http://www.opensource.org/licenses/MIT
+//
 
 #import "PPAppDelegate.h"
 
