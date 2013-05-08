@@ -27,6 +27,8 @@
 	[self.progressBar setMinValue:0.];
 	[self.progressBar setMaxValue:1.];
 	
+	[self.importFileField becomeFirstResponder];
+	
 	[self addObserver:self forKeyPath:@"importedItems"		options:NSKeyValueObservingOptionNew context:NULL];
 	[self addObserver:self forKeyPath:@"pinboardUsername"	options:NSKeyValueObservingOptionNew context:NULL];
 	[self addObserver:self forKeyPath:@"pinboardPassword"	options:NSKeyValueObservingOptionNew context:NULL];
@@ -45,6 +47,9 @@
 		if (  [keyPath isEqualToString:@"importedItems"]
 			||[keyPath isEqualToString:@"pinboardUsername"]
 			||[keyPath isEqualToString:@"pinboardPassword"]	) {
+			
+			if ([keyPath isEqualToString:@"pinboardUsername"]||[keyPath isEqualToString:@"pinboardPassword"])
+				self.pinboardToken = nil;
 			
 			dispatch_async(dispatch_get_main_queue(), ^{
 				[self.uploadButton setEnabled:(self.importedItems.count > 0 && self.pinboardUsername.length > 0 && self.pinboardPassword.length > 0)];
@@ -130,7 +135,7 @@
 		}
 		
 		dispatch_async(dispatch_get_main_queue(), ^{
-			self.statusLabel.stringValue = [NSString stringWithFormat:@"Done. (imported: %lu, failed: %lu)"
+			self.statusLabel.stringValue = [NSString stringWithFormat:@"Import done. (imported: %lu, failed: %lu)"
 											,(unsigned long)itemsSuccessfullyImported.count
 											,(unsigned long)(self.readerImporter.items.count - itemsSuccessfullyImported.count)	];
 			
@@ -143,12 +148,17 @@
 - (IBAction)pushUpload:(NSButton *)sender {
 	DLog(@"called");
 	
-	NSMutableArray	*itemsToBeUploaded			= [self.importedItems mutableCopy];
+	NSMutableArray	*itemsToBeUploaded = [self.importedItems mutableCopy];
 	[itemsToBeUploaded removeObjectsInArray:self.uploadedItems];
 	
 	NSMutableArray	*itemsSuccessfullyUploaded	= [NSMutableArray arrayWithCapacity:itemsToBeUploaded.count];
+	NSMutableArray	*itemsThatFailedToUpload	= [NSMutableArray arrayWithCapacity:itemsToBeUploaded.count];
 	
 	if (itemsToBeUploaded.count <= 0) {
+		dispatch_async(dispatch_get_main_queue(), ^{
+			self.statusLabel.stringValue = @"No items left to upload!";
+		});
+		
 		return;
 	}
 	
@@ -185,6 +195,8 @@
 				
 				if ([result isEqualToString:@"done"]) {
 					[itemsSuccessfullyUploaded addObject:item];
+				} else {
+					[itemsThatFailedToUpload addObject:item];
 				}
 				
 				uploadCount++;
@@ -192,13 +204,27 @@
 			
 			if (itemsSuccessfullyUploaded.count > 0)
 				self.uploadedItems = [self.uploadedItems arrayByAddingObjectsFromArray:itemsSuccessfullyUploaded];
+			
+			self.importedItems = itemsThatFailedToUpload.count > 0 ? [NSArray arrayWithArray:itemsThatFailedToUpload] : nil;
+			
+			dispatch_async(dispatch_get_main_queue(), ^{
+				if (itemsThatFailedToUpload.count <= 0)
+					self.importFileField.stringValue = @"";
+				
+				self.statusLabel.stringValue = [NSString stringWithFormat:@"Upload done. (uploaded: %lu, failed: %lu)"
+												,(unsigned long)itemsSuccessfullyUploaded.count
+												,(unsigned long)itemsThatFailedToUpload.count	];
+			});
+			
+		} else {
+			self.pinboardToken = nil;
+			
+			dispatch_async(dispatch_get_main_queue(), ^{
+				self.statusLabel.stringValue = [NSString stringWithFormat:@"Authentication failed!"];
+			});
 		}
 		
 		dispatch_async(dispatch_get_main_queue(), ^{
-			self.statusLabel.stringValue = [NSString stringWithFormat:@"Done. (uploaded: %lu, failed: %lu)"
-											,(unsigned long)itemsSuccessfullyUploaded.count
-											,(unsigned long)(itemsToBeUploaded.count - itemsSuccessfullyUploaded.count)	];
-			
 			[self.progressBar stopAnimation:self];
 			[self.progressBar setHidden:YES];
 		});
