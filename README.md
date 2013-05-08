@@ -23,21 +23,20 @@ Uses:
 * ARC
 * Storyboards
 
-Status: *Alpha*
+Status: *v1.0.0*
 
 
 FAQ
 ---
 
-### So, do you have anything to share with the group?
+### So, how do I use it? Any tips?
 
-Actually I do, so here goes:
+A step-by-step tutorial is available here: [Migrating Google Reader’s starred articles to Pinboard](http://criticalmess.tumblr.com/post/49949899626/migrating-google-readers-starred-articles-to-pinboard)
 
-I recently bought a [Pinboard](https://pinboard.in/) account and found that it took me less than 15 minutes to utterly fall in love with the service. It's fast, it's simple yet powerful and generally rather awesome, especially when integrated into practically everything using [IFTTT](https://ifttt.com). Also it doesn't want me to share everything I do on Facebook all the time. I've been searching for exactly that for years now, so I may be a bit enthusiastic about it.
 
-As you may know, Google has decided to [discontinue Reader](http://googleblog.blogspot.com/2013/03/a-second-spring-of-cleaning.html) (..don't get me started on that..), which means that I had to find a new home for all the starred items I have - which are plenty b/c I've been using GReader daily for several years now as my main means of sifting through the daily stream of tech news while commuting.
+### I don't want to compile it myself, I need it NOW!
 
-I am a bit of a neat freak, so I'd rather do data migration myself instead of uploading first and sift through the data later. So I did.
+You're in luck, you can always download the latest release binary from [Pinport's Github Page](http://mvanallen.github.io/Pinport/).
 
 
 ### Why should I use this when Pinboard already has a convenient 'Import' functionality?
