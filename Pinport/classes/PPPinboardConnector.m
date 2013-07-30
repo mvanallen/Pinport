@@ -13,7 +13,8 @@
 #import "AFJSONRequestOperation.h"
 
 
-#define PINBOARD_API_v1	@"https://api.pinboard.in/v1/"
+#define PINBOARD_API_v1			@"https://api.pinboard.in/v1/"
+#define PINBOARD_BASIC_DELAY	3.
 
 
 @interface PPPinboardConnector (Private)
@@ -50,7 +51,7 @@
 }
 
 - (id)_resultForSynchronousApiRequest:(NSURLRequest *)theApiRequest withCredential:(NSURLCredential *)aCredential {
-	NSString __block *result = nil;
+	id __block result = nil;
 	
 	if (theApiRequest) {
 		dispatch_semaphore_t __block __communicationLock = dispatch_semaphore_create(0);
@@ -77,6 +78,8 @@
 			//DLog(@"..request successful! (result: %@)",responseObject);
 			
 		} failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+			
+			result = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
 			
 			dispatch_semaphore_signal(__communicationLock);
 			DLog(@"..request failed! (error: %@)",error);
@@ -118,6 +121,10 @@
 	return [NSURL URLWithString:PINBOARD_API_v1];
 }
 
+- (NSTimeInterval)defaultRequestDelay {
+	return PINBOARD_BASIC_DELAY;
+}
+
 #pragma mark Public methods
 
 - (NSString *)authTokenForAccountWithUsername:(NSString *)theUsername andPassword:(NSString *)thePassword {
@@ -144,8 +151,11 @@
 	return token.length > 0 ? [@[theUsername,token] componentsJoinedByString:@":"] : nil;
 }
 
-- (NSString *)usingToken:(NSString *)theToken uploadItem:(PPPinboardItem *)anItem overwriteExisting:(BOOL)shouldReplaceExisting {
+- (NSString *)usingToken:(NSString *)theToken uploadItem:(PPPinboardItem *)anItem overwriteExisting:(BOOL)shouldReplaceExisting httpError:(NSError *__autoreleasing *)error {
 	NSString *result = nil;
+	
+	if (error != NULL)
+		*error = nil;
 	
 	if (theToken.length > 0 && anItem && anItem.url && anItem.title.length > 0) {
 		
@@ -158,7 +168,13 @@
 		
 		id response = [self _resultForSynchronousApiRequest:addRequest withCredential:nil];
 		
-		if ([response isKindOfClass:[NSDictionary class]])
+		if      ([response isKindOfClass:[NSHTTPURLResponse class]] && error != NULL)
+			*error = [NSError errorWithDomain:@"HTTP"
+										 code:[response statusCode]
+									 userInfo:@{ NSLocalizedDescriptionKey : [NSHTTPURLResponse localizedStringForStatusCode:[response statusCode]] }
+					  ];
+		
+		else if ([response isKindOfClass:[NSDictionary class]])
 			result = [response objectForKey:@"result_code"];
 	}
 	

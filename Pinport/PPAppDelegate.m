@@ -152,6 +152,7 @@
 	[itemsToBeUploaded removeObjectsInArray:self.uploadedItems];
 	
 	NSMutableArray	*itemsSuccessfullyUploaded	= [NSMutableArray arrayWithCapacity:itemsToBeUploaded.count];
+	NSMutableArray	*itemsThatAlreadyExisted	= [NSMutableArray arrayWithCapacity:itemsToBeUploaded.count];
 	NSMutableArray	*itemsThatFailedToUpload	= [NSMutableArray arrayWithCapacity:itemsToBeUploaded.count];
 	
 	if (itemsToBeUploaded.count <= 0) {
@@ -184,19 +185,42 @@
 				[self.progressBar startAnimation:self];
 			});
 			
-			NSUInteger uploadCount = 0;
+			double retries = 2.;
+			
+			NSUInteger		uploadCount	= 0;
+			NSTimeInterval	uploadRateCurrentDelay	= self.pinboardApi.defaultRequestDelay;
+			NSTimeInterval	uploadRateMaximumDelay	= self.pinboardApi.defaultRequestDelay * pow(2., retries);
+			
 			for (PPPinboardItem *item in itemsToBeUploaded) {
 				dispatch_async(dispatch_get_main_queue(), ^{
 					[self.progressBar setDoubleValue:uploadCount/(double)itemsToBeUploaded.count];
 				});
 				
-				NSString *result = [self.pinboardApi usingToken:self.pinboardToken uploadItem:item overwriteExisting:NO];
-				DLog(@"Upload got result '%@' for item: %@",result,item.title);
+				NSString	*result	= nil;
+				NSError		*err	= nil;
 				
-				if ([result isEqualToString:@"done"]) {
-					[itemsSuccessfullyUploaded addObject:item];
+				BOOL shouldRetry = NO;
+				do {
+					[NSThread sleepForTimeInterval:uploadRateCurrentDelay];
+					
+					result = [self.pinboardApi usingToken:self.pinboardToken uploadItem:item overwriteExisting:NO httpError:&err];
+					
+					shouldRetry = (err && err.code == 429 /* Too Many Requests */ && uploadRateCurrentDelay < uploadRateMaximumDelay);
+					if (shouldRetry)
+						uploadRateCurrentDelay *= 2.;
+					
+				} while (shouldRetry);
+				
+				DLog(@"Upload got result '%@' for item: %@",result?:err,item.title);
+				
+				if        ([result isEqualToString:@"done"]) {
+					[itemsSuccessfullyUploaded	addObject:item];
+					
+				} else if ([result isEqualToString:@"item already exists"]) {
+					[itemsThatAlreadyExisted	addObject:item];
+					
 				} else {
-					[itemsThatFailedToUpload addObject:item];
+					[itemsThatFailedToUpload	addObject:item];
 				}
 				
 				uploadCount++;
@@ -205,14 +229,18 @@
 			if (itemsSuccessfullyUploaded.count > 0)
 				self.uploadedItems = [self.uploadedItems arrayByAddingObjectsFromArray:itemsSuccessfullyUploaded];
 			
+			if (itemsThatAlreadyExisted.count > 0)
+				self.uploadedItems = [self.uploadedItems arrayByAddingObjectsFromArray:itemsThatAlreadyExisted];
+			
 			self.importedItems = itemsThatFailedToUpload.count > 0 ? [NSArray arrayWithArray:itemsThatFailedToUpload] : nil;
 			
 			dispatch_async(dispatch_get_main_queue(), ^{
 				if (itemsThatFailedToUpload.count <= 0)
 					self.importFileField.stringValue = @"";
 				
-				self.statusLabel.stringValue = [NSString stringWithFormat:@"Upload done. (uploaded: %lu, failed: %lu)"
+				self.statusLabel.stringValue = [NSString stringWithFormat:@"Upload done. (created: %lu, skipped: %lu, failed: %lu)"
 												,(unsigned long)itemsSuccessfullyUploaded.count
+												,(unsigned long)itemsThatAlreadyExisted.count
 												,(unsigned long)itemsThatFailedToUpload.count	];
 			});
 			

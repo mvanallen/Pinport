@@ -14,10 +14,11 @@
 @class PPPinboardItem;
 
 @interface PPPinboardConnector : NSObject
-@property (nonatomic,readonly)	NSURL	*apiRootUrl;
+@property (nonatomic,readonly)	NSURL			*apiRootUrl;
+@property (nonatomic,readonly)	NSTimeInterval	defaultRequestDelay;
 
 - (NSString *)authTokenForAccountWithUsername:(NSString *)theUsername andPassword:(NSString *)thePassword;
-- (NSString *)usingToken:(NSString *)theToken uploadItem:(PPPinboardItem *)anItem overwriteExisting:(BOOL)shouldReplaceExisting;
+- (NSString *)usingToken:(NSString *)theToken uploadItem:(PPPinboardItem *)anItem overwriteExisting:(BOOL)shouldReplaceExisting httpError:(NSError **)error;
 @end
 
 
